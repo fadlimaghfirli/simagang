@@ -49,7 +49,7 @@
 
                 <div class="text-center">
                     {{-- <x-application-logo class="w-12 h-12 mx-auto fill-current text-indigo-600 mb-4" /> --}}
-                    <img class="w-20 h-20 mx-auto mb-6" src="image/logo_utm.png" alt="">
+                    <img class="w-20 h-20 mx-auto mb-6" src="image/logo_utm.png" alt="Logo UTM">
                     <h2 class="text-3xl font-extrabold text-gray-900">Login</h2>
                     <p class="mt-2 text-sm text-gray-600">
                         Silakan masukkan identitas Anda.
