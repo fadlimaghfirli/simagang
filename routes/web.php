@@ -30,6 +30,13 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
     // Manajemen User (Resource Controller)
+    // KITA TAMBAHKAN INI (Route Custom sebelum Resource)
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/dosen', [\App\Http\Controllers\Admin\UserController::class, 'indexDosen'])->name('dosen');
+        Route::get('/mahasiswa', [\App\Http\Controllers\Admin\UserController::class, 'indexMahasiswa'])->name('mahasiswa');
+    });
+
+    // Manajemen User (Resource Controller)
     // Ini otomatis membuat rute index, create, store, edit, update, destroy
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
 

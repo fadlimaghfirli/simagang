@@ -4,14 +4,22 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Edit Profil Pengguna') }}
             </h2>
-            <a href="{{ route('users.index') }}"
+
+            {{-- LOGIKA LINK KEMBALI --}}
+            @php
+            $backRoute = $user->role === 'dosen'
+            ? route('admin.users.dosen')
+            : ($user->role === 'mahasiswa' ? route('admin.users.mahasiswa') : route('admin.users.index'));
+            @endphp
+
+            <a href="{{ $backRoute }}"
                 class="text-gray-500 hover:text-indigo-600 flex items-center gap-2 text-sm font-medium transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Kembali ke Manajemen User
+                Kembali ke Daftar {{ ucfirst($user->role) }}
             </a>
         </div>
     </x-slot>
@@ -53,15 +61,15 @@
                                     <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Current
                                         Role:</span>
                                     @if ($user->role == 'admin')
-                                        <span
-                                            class="px-3 py-1 text-xs font-bold text-red-700 bg-red-100 rounded-full">Administrator</span>
+                                    <span
+                                        class="px-3 py-1 text-xs font-bold text-red-700 bg-red-100 rounded-full">Administrator</span>
                                     @elseif($user->role == 'dosen')
-                                        <span
-                                            class="px-3 py-1 text-xs font-bold text-indigo-700 bg-indigo-100 rounded-full">Dosen
-                                            Pengajar</span>
+                                    <span
+                                        class="px-3 py-1 text-xs font-bold text-indigo-700 bg-indigo-100 rounded-full">Dosen
+                                        Pengajar</span>
                                     @else
-                                        <span
-                                            class="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-100 rounded-full">Mahasiswa</span>
+                                    <span
+                                        class="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-100 rounded-full">Mahasiswa</span>
                                     @endif
                                 </div>
 
@@ -91,16 +99,16 @@
                                 <div>
                                     <x-input-label for="name" :value="__('Nama Lengkap')" />
                                     <x-text-input id="name"
-                                        class="block mt-1 w-full bg-gray-50 focus:bg-white transition-all"
-                                        type="text" name="name" :value="old('name', $user->name)" required />
+                                        class="block mt-1 w-full bg-gray-50 focus:bg-white transition-all" type="text"
+                                        name="name" :value="old('name', $user->name)" required />
                                     <x-input-error :messages="$errors->get('name')" class="mt-2" />
                                 </div>
 
                                 <div>
                                     <x-input-label for="email" :value="__('Alamat Email')" />
                                     <x-text-input id="email"
-                                        class="block mt-1 w-full bg-gray-50 focus:bg-white transition-all"
-                                        type="email" name="email" :value="old('email', $user->email)" required />
+                                        class="block mt-1 w-full bg-gray-50 focus:bg-white transition-all" type="email"
+                                        name="email" :value="old('email', $user->email)" required />
                                     <x-input-error :messages="$errors->get('email')" class="mt-2" />
                                 </div>
 
@@ -154,10 +162,11 @@
                         </div>
 
                         <div class="flex items-center justify-end gap-3 pt-4">
-                            <a href="{{ route('users.index') }}"
+                            <a href="{{ $backRoute }}"
                                 class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">
                                 Batal
                             </a>
+
                             <button type="submit"
                                 class="px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl hover:-translate-y-0.5 transition-all">
                                 Simpan Perubahan

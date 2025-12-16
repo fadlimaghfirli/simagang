@@ -18,18 +18,49 @@
                 Dashboard
             </a>
 
-            <a href="{{ route('admin.users.index') }}"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors duration-200 
-               {{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-gray-600 hover:bg-gray-100' }}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
-                    </path>
-                </svg>
-                Manajemen User
-            </a>
+            <div
+                x-data="{ open: {{ request()->routeIs('admin.users.dosen') || request()->routeIs('admin.users.mahasiswa') ? 'true' : 'false' }} }">
 
-            <div x-data="{ open: {{ request()->routeIs('admin.companies.*') || request()->routeIs('admin.vacancies.*') ? 'true' : 'false' }} }">
+                <button @click="open = !open"
+                    class="flex items-center justify-between w-full px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                            </path>
+                        </svg>
+                        <span class="font-medium">Manajemen User</span>
+                    </div>
+
+                    <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform duration-200" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+
+                <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="opacity-0 transform scale-95"
+                    x-transition:enter-end="opacity-100 transform scale-100" class="mt-1 space-y-1"
+                    style="display: none;">
+
+                    <a href="{{ route('admin.users.dosen') }}"
+                        class="block pl-12 pr-4 py-2 text-sm rounded-lg transition-colors duration-200 
+                        {{ request()->routeIs('admin.users.dosen') ? 'text-indigo-600 font-semibold bg-indigo-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50' }}">
+                        Data Dosen
+                    </a>
+
+                    <a href="{{ route('admin.users.mahasiswa') }}"
+                        class="block pl-12 pr-4 py-2 text-sm rounded-lg transition-colors duration-200 
+                        {{ request()->routeIs('admin.users.mahasiswa') ? 'text-indigo-600 font-semibold bg-indigo-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50' }}">
+                        Data Mahasiswa
+                    </a>
+                </div>
+
+            </div>
+
+            <div
+                x-data="{ open: {{ request()->routeIs('admin.companies.*') || request()->routeIs('admin.vacancies.*') ? 'true' : 'false' }} }">
 
                 <button @click="open = !open"
                     class="flex items-center justify-between w-full px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors duration-200">
@@ -43,8 +74,8 @@
                         <span class="font-medium">Mitra & Lowongan</span>
                     </div>
 
-                    <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform duration-200"
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform duration-200" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
@@ -121,26 +152,25 @@
 
     {{-- <div class="p-4 border-t border-gray-200">
         <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit"
-                class="flex w-full items-center gap-3 px-4 py-2 text-red-600 rounded-lg hover:bg-red-50 transition-colors duration-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
-                    </path>
-                </svg>
-                Logout
-            </button>
-        </form>
-        <div class="mt-4 flex items-center gap-3 px-4">
-            <div
-                class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-white">
-                A
-            </div>
-            <div class="text-sm">
-                <p class="font-medium text-gray-700">{{ Auth::user()->name }}</p>
-                <p class="text-xs text-gray-500">Administrator</p>
-            </div>
+    @csrf
+    <button type="submit"
+        class="flex w-full items-center gap-3 px-4 py-2 text-red-600 rounded-lg hover:bg-red-50 transition-colors duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+            </path>
+        </svg>
+        Logout
+    </button>
+    </form>
+    <div class="mt-4 flex items-center gap-3 px-4">
+        <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-white">
+            A
         </div>
-    </div> --}}
+        <div class="text-sm">
+            <p class="font-medium text-gray-700">{{ Auth::user()->name }}</p>
+            <p class="text-xs text-gray-500">Administrator</p>
+        </div>
+    </div>
+</div> --}}
 </div>

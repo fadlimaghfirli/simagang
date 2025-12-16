@@ -85,29 +85,36 @@ class UserController extends Controller
     // 5. Menyimpan perubahan data (Update)
     public function update(Request $request, User $user)
     {
-        // Validasi (Password boleh kosong jika tidak ingin diganti)
+        // ... validasi dan update data (kode lama) ...
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id, // Kecualikan email user ini sendiri
+            'email' => 'required|email|unique:users,email,' . $user->id,
             'role' => 'required|in:admin,dosen,mahasiswa',
-            'password' => 'nullable|min:8', // Nullable artinya boleh kosong
+            'password' => 'nullable|min:8',
         ]);
 
-        // Update data dasar
         $data = [
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
         ];
 
-        // Jika password diisi, maka update password juga
         if ($request->filled('password')) {
             $data['password'] = bcrypt($request->password);
         }
 
         $user->update($data);
 
-        return redirect()->route('admin.users.index')->with('success', 'Data user berhasil diperbarui!');
+        // --- PERBAIKAN REDIRECT DI SINI ---
+        $redirectRoute = 'users.index'; // Default (misal admin)
+
+        if ($user->role === 'dosen') {
+            $redirectRoute = 'admin.users.dosen';
+        } elseif ($user->role === 'mahasiswa') {
+            $redirectRoute = 'admin.users.mahasiswa';
+        }
+
+        return redirect()->route($redirectRoute)->with('success', 'Data user berhasil diperbarui!');
     }
 
     // 6. Menghapus data (Delete)
@@ -140,5 +147,39 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return redirect()->route('users.index')->with('error', 'Gagal import: ' . $e->getMessage());
         }
+    }
+
+    // 1. Fungsi Khusus Menampilkan Halaman Dosen
+    public function indexDosen(Request $request)
+    {
+        $search = $request->input('search');
+
+        $dosens = User::where('role', 'dosen')
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(10); // Kita set 10 per halaman
+
+        // Kita akan buat view ini di langkah selanjutnya
+        return view('admin.users.dosen_index', compact('dosens'));
+    }
+
+    // 2. Fungsi Khusus Menampilkan Halaman Mahasiswa
+    public function indexMahasiswa(Request $request)
+    {
+        $search = $request->input('search');
+
+        $mahasiswas = User::where('role', 'mahasiswa')
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(10);
+
+        // Kita akan buat view ini di langkah selanjutnya
+        return view('admin.users.mahasiswa_index', compact('mahasiswas'));
     }
 }
