@@ -10,7 +10,7 @@
 
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
                 <h2 class="text-2xl font-bold text-gray-800">
-                    Daftar Mahasiswa
+                    Manajemen User
                 </h2>
 
                 <div class="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
@@ -30,7 +30,7 @@
                     </form>
 
                     <div class="flex gap-2">
-                        <a href="{{ route('users.create') }}"
+                        <a href="{{ route('admin.users.mahasiswa.create') }}"
                             class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium shadow-sm transition-colors whitespace-nowrap">
                             + Tambah Mahasiswa
                         </a>
@@ -85,7 +85,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $mhs->created_at->format('d M Y') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a href="{{ route('users.edit', $user = $mhs->id) }}"
+                                    <a href="{{ route('admin.users.mahasiswa.edit', $mhs->id) }}"
                                         class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
                                     <form action="{{ route('users.destroy', $mhs->id) }}" method="POST"
                                         class="inline-block" onsubmit="return confirm('Yakin hapus user ini?');">

@@ -34,6 +34,16 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/dosen', [\App\Http\Controllers\Admin\UserController::class, 'indexDosen'])->name('dosen');
         Route::get('/mahasiswa', [\App\Http\Controllers\Admin\UserController::class, 'indexMahasiswa'])->name('mahasiswa');
+
+        Route::get('/dosen/create', [\App\Http\Controllers\Admin\UserController::class, 'createDosen'])->name('dosen.create');
+        Route::get('/mahasiswa/create', [\App\Http\Controllers\Admin\UserController::class, 'createMahasiswa'])->name('mahasiswa.create');
+
+        // --- TAMBAHKAN RUTE EDIT KHUSUS INI ---
+        Route::get('/dosen/{user}/edit', [\App\Http\Controllers\Admin\UserController::class, 'editDosen'])->name('dosen.edit');
+        Route::get('/mahasiswa/{user}/edit', [\App\Http\Controllers\Admin\UserController::class, 'editMahasiswa'])->name('mahasiswa.edit');
+
+        // Resource standar tetap ada (untuk update/destroy)
+        Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->except(['create', 'edit']);
     });
 
     // Manajemen User (Resource Controller)

@@ -10,7 +10,7 @@
 
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
                 <h2 class="text-2xl font-bold text-gray-800">
-                    Daftar Dosen
+                    Manajemen User
                 </h2>
 
                 <div class="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
@@ -29,9 +29,15 @@
                     </form>
 
                     <div class="flex gap-2">
-                        <a href="{{ route('users.create') }}"
-                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium shadow-sm transition-colors whitespace-nowrap">
-                            + Tambah Dosen
+                        <a href="{{ route('admin.users.dosen.create') }}"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium shadow-sm transition-colors whitespace-nowrap flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Tambah Dosen
                         </a>
                     </div>
                 </div>
@@ -52,57 +58,98 @@
                             <tr>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Nama</th>
+                                    NIP</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Nama Dosen</th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Email</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Status</th>
-                                <th
-                                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach ($dosens as $dosen)
                             <tr class="hover:bg-gray-50 transition-colors">
+
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ optional($dosen->dosenProfile)->nip ?? '-' }}
+                                </td>
+
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="flex-shrink-0 h-8 w-8">
                                             <div
-                                                class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                                                class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">
                                                 {{ substr($dosen->name, 0, 1) }}
                                             </div>
                                         </div>
-                                        <div class="ml-4">
+                                        <div class="ml-3">
                                             <div class="text-sm font-medium text-gray-900">{{ $dosen->name }}</div>
+                                            @if(optional($dosen->dosenProfile)->kode_dosen)
+                                            <div class="text-xs text-gray-500">Kode:
+                                                {{ $dosen->dosenProfile->kode_dosen }}</div>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $dosen->email }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span
-                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $dosen->email }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a href="{{ route('users.edit', $user = $dosen->id) }}"
-                                        class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
-                                    <form action="{{ route('users.destroy', $dosen->id) }}" method="POST"
-                                        class="inline-block" onsubmit="return confirm('Yakin hapus user ini?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="text-red-600 hover:text-red-900 font-medium hover:underline">Hapus</button>
-                                    </form>
+
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                    <div class="flex justify-center items-center gap-2">
+
+                                        <a href="{{ route('users.show', $dosen->id) }}"
+                                            class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                                            title="Lihat Profil">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                        </a>
+
+                                        <a href="{{ route('admin.users.dosen.edit', $dosen->id) }}"
+                                            class="p-2 bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 hover:text-yellow-800 transition-colors"
+                                            title="Edit Data">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </a>
+
+                                        <form action="{{ route('users.destroy', $dosen->id) }}" method="POST"
+                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus data dosen ini?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 hover:text-red-800 transition-colors"
+                                                title="Hapus Permanen">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                    viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </form>
+
+                                    </div>
                                 </td>
                             </tr>
                             @endforeach
 
                             @if ($dosens->isEmpty())
                             <tr>
-                                <td colspan="4" class="px-6 py-4 text-center text-gray-500 italic">Data dosen tidak
-                                    ditemukan.</td>
+                                <td colspan="4" class="px-6 py-4 text-center text-gray-500 italic">Belum ada data dosen.
+                                </td>
                             </tr>
                             @endif
                         </tbody>

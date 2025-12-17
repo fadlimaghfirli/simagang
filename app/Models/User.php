@@ -46,4 +46,20 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Relasi ke Profil Dosen (One-to-One)
+     */
+    public function dosenProfile()
+    {
+        return $this->hasOne(DosenProfile::class);
+    }
+
+    /**
+     * Relasi ke Profil Mahasiswa (One-to-One)
+     */
+    public function mahasiswaProfile()
+    {
+        return $this->hasOne(MahasiswaProfile::class);
+    }
 }

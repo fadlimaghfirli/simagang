@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use App\Imports\UsersImport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -46,75 +47,187 @@ class UserController extends Controller
         return view('admin.users.index', compact('dosens', 'mahasiswas', 'total_user'));
     }
 
-    // Menampilkan form tambah user
-    public function create()
+    // Menampilkan Detail User (Show)
+    public function show(User $user)
     {
-        // Menampilkan file view create.blade.php
-        return view('admin.users.create');
+        if ($user->role === 'dosen') {
+            return view('admin.users.show_dosen', compact('user'));
+        }
+
+        // Nanti kita tambahkan untuk mahasiswa di sini
+        // elseif ($user->role === 'mahasiswa') { ... }
+
+        return redirect()->back();
     }
 
-    // Menyimpan user baru ke database
+    // 1. Form Khusus Tambah Dosen
+    public function createDosen()
+    {
+        return view('admin.users.create_dosen');
+    }
+
+    // 2. Form Khusus Tambah Mahasiswa
+    public function createMahasiswa()
+    {
+        // Kita butuh data dosen untuk dropdown "Dosen Wali"
+        $dosens = User::where('role', 'dosen')->get();
+        return view('admin.users.create_mahasiswa', compact('dosens'));
+    }
+
+    // --- Update Method STORE ---
     public function store(Request $request)
     {
-        // 1. Validasi Input
+        // 1. Validasi Data Akun Utama
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', Rules\Password::defaults()],
-            'role' => ['required', 'in:admin,dosen,mahasiswa'], // Pastikan hanya role ini yang boleh
+            'role' => ['required', 'in:admin,dosen,mahasiswa'],
         ]);
 
-        // 2. Simpan ke Database
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role, // <--- Ini kunci perbaikannya!
-        ]);
+        // 2. Validasi Data Profil (Kondisional)
+        if ($request->role === 'dosen') {
+            $request->validate([
+                'nip' => ['required', 'string', 'unique:dosen_profiles,nip'], // Cek unik di tabel profil
+                'nidn' => ['nullable', 'string', 'unique:dosen_profiles,nidn'],
+                'kode_dosen' => ['nullable', 'string', 'max:5'],
+                'no_hp' => ['nullable', 'string', 'max:15'],
+            ]);
+        } elseif ($request->role === 'mahasiswa') {
+            $request->validate([
+                'nim' => ['required', 'string', 'unique:mahasiswa_profiles,nim'],
+                'angkatan' => ['required', 'numeric', 'digits:4'],
+                'kelas' => ['nullable', 'string', 'max:10'],
+                'dosen_wali_id' => ['nullable', 'exists:users,id'], // Pastikan ID dosen ada di tabel users
+            ]);
+        }
 
-        // 3. Redirect kembali ke halaman index dengan pesan sukses
-        return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan!');
+        // 3. Simpan dengan Transaction (Agar data konsisten: User & Profile tersimpan bareng)
+        DB::transaction(function () use ($request) {
+
+            // A. Buat User Login
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => $request->role,
+            ]);
+
+            // B. Buat Profile Sesuai Role
+            if ($request->role === 'dosen') {
+                $user->dosenProfile()->create([
+                    'nip' => $request->nip,
+                    'nidn' => $request->nidn,
+                    'kode_dosen' => $request->kode_dosen,
+                    'no_hp' => $request->no_hp,
+                ]);
+            } elseif ($request->role === 'mahasiswa') {
+                $user->mahasiswaProfile()->create([
+                    'nim' => $request->nim,
+                    'angkatan' => $request->angkatan,
+                    'kelas' => $request->kelas,
+                    'no_hp' => $request->no_hp, // Ambil no_hp dari input jika ada (tambahkan di view nanti)
+                    'dosen_wali_id' => $request->dosen_wali_id,
+                ]);
+            }
+            // Admin tidak perlu profil khusus
+        });
+
+        // Redirect sesuai role yang baru dibuat
+        $redirectRoute = 'admin.users.index';
+        if ($request->role === 'dosen') $redirectRoute = 'admin.users.dosen';
+        if ($request->role === 'mahasiswa') $redirectRoute = 'admin.users.mahasiswa';
+
+        return redirect()->route($redirectRoute)->with('success', 'User berhasil ditambahkan beserta profilnya!');
     }
 
-    // 4. Menampilkan form edit
-    public function edit(User $user)
+    // 1. Edit Khusus Dosen
+    public function editDosen(User $user)
     {
-        return view('admin.users.edit', compact('user'));
+        // Pastikan user ini benar-benar dosen
+        if ($user->role !== 'dosen') return redirect()->back();
+
+        return view('admin.users.edit_dosen', compact('user'));
     }
 
-    // 5. Menyimpan perubahan data (Update)
+    // 2. Edit Khusus Mahasiswa
+    public function editMahasiswa(User $user)
+    {
+        if ($user->role !== 'mahasiswa') return redirect()->back();
+
+        $dosens = User::where('role', 'dosen')->get();
+        return view('admin.users.edit_mahasiswa', compact('user', 'dosens'));
+    }
+
+    // 3. Update Data (Menangani User + Profil)
     public function update(Request $request, User $user)
     {
-        // ... validasi dan update data (kode lama) ...
+        // A. Validasi Data Dasar
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|in:admin,dosen,mahasiswa',
             'password' => 'nullable|min:8',
         ]);
 
-        $data = [
+        // B. Update Data User Login
+        $userData = [
             'name' => $request->name,
             'email' => $request->email,
-            'role' => $request->role,
         ];
 
         if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
+            $userData['password'] = bcrypt($request->password);
         }
 
-        $user->update($data);
+        // Kita tidak update 'role' di sini karena edit user biasanya role-nya tetap.
+        // Jika ingin ubah role, sebaiknya hapus user dan buat baru agar data profil bersih.
 
-        // --- PERBAIKAN REDIRECT DI SINI ---
-        $redirectRoute = 'users.index'; // Default (misal admin)
+        $user->update($userData);
 
+        // C. Update Data Profil Sesuai Role
         if ($user->role === 'dosen') {
-            $redirectRoute = 'admin.users.dosen';
+            $request->validate([
+                'nip' => 'required|string|unique:dosen_profiles,nip,' . optional($user->dosenProfile)->id,
+                'nidn' => 'nullable|string|unique:dosen_profiles,nidn,' . optional($user->dosenProfile)->id,
+                'kode_dosen' => 'nullable|string|max:5',
+                'no_hp' => 'nullable|string|max:15',
+            ]);
+
+            // Gunakan updateOrCreate untuk menangani jika profil sebelumnya belum ada
+            $user->dosenProfile()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'nip' => $request->nip,
+                    'nidn' => $request->nidn,
+                    'kode_dosen' => $request->kode_dosen,
+                    'no_hp' => $request->no_hp,
+                ]
+            );
+
+            return redirect()->route('admin.users.dosen')->with('success', 'Data Dosen berhasil diperbarui!');
         } elseif ($user->role === 'mahasiswa') {
-            $redirectRoute = 'admin.users.mahasiswa';
+            $request->validate([
+                'nim' => 'required|string|unique:mahasiswa_profiles,nim,' . optional($user->mahasiswaProfile)->id,
+                'angkatan' => 'required|numeric',
+                'kelas' => 'nullable|string',
+                'dosen_wali_id' => 'nullable|exists:users,id',
+            ]);
+
+            $user->mahasiswaProfile()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'nim' => $request->nim,
+                    'angkatan' => $request->angkatan,
+                    'kelas' => $request->kelas,
+                    'no_hp' => $request->no_hp,
+                    'dosen_wali_id' => $request->dosen_wali_id,
+                ]
+            );
+
+            return redirect()->route('admin.users.mahasiswa')->with('success', 'Data Mahasiswa berhasil diperbarui!');
         }
 
-        return redirect()->route($redirectRoute)->with('success', 'Data user berhasil diperbarui!');
+        return redirect()->route('admin.users.index')->with('success', 'Data User berhasil diperbarui!');
     }
 
     // 6. Menghapus data (Delete)

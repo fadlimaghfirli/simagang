@@ -30,7 +30,7 @@
                                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
                             </path>
                         </svg>
-                        <span class="font-medium">Manajemen User</span>
+                        <span class="">Manajemen User</span>
                     </div>
 
                     <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform duration-200" fill="none"
@@ -71,7 +71,7 @@
                                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
                             </path>
                         </svg>
-                        <span class="font-medium">Mitra & Lowongan</span>
+                        <span class="">Mitra & Lowongan</span>
                     </div>
 
                     <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform duration-200" fill="none"
