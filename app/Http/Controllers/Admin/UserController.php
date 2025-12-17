@@ -55,8 +55,12 @@ class UserController extends Controller
             return view('admin.users.show_dosen', compact('user'));
         }
 
-        // Nanti kita tambahkan untuk mahasiswa di sini
-        // elseif ($user->role === 'mahasiswa') { ... }
+        // TAMBAHAN LOGIKA UNTUK MAHASISWA
+        elseif ($user->role === 'mahasiswa') {
+            // Kita butuh list dosen untuk dropdown edit "Dosen Wali"
+            $dosens = User::where('role', 'dosen')->get();
+            return view('admin.users.show_mahasiswa', compact('user', 'dosens'));
+        }
 
         return redirect()->back();
     }

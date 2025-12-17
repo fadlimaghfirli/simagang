@@ -17,8 +17,8 @@
                     <form method="GET" action="{{ route('admin.users.mahasiswa') }}" class="w-full md:w-64">
                         <div class="relative">
                             <input type="text" name="search" value="{{ request('search') }}"
-                                placeholder="Cari mahasiswa..."
-                                class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                placeholder="Cari Nama / NIM..."
+                                class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-emerald-500 focus:border-emerald-500 text-sm">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -31,8 +31,14 @@
 
                     <div class="flex gap-2">
                         <a href="{{ route('admin.users.mahasiswa.create') }}"
-                            class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium shadow-sm transition-colors whitespace-nowrap">
-                            + Tambah Mahasiswa
+                            class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium shadow-sm transition-colors whitespace-nowrap flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Tambah Mahasiswa
                         </a>
                     </div>
                 </div>
@@ -53,66 +59,98 @@
                             <tr>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Nama</th>
+                                    NIM</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Nama Mahasiswa</th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Email</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Bergabung</th>
-                                <th
-                                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach ($mahasiswas as $mhs)
                             <tr class="hover:bg-gray-50 transition-colors">
+
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ $mhs->mahasiswaProfile->nim ?? '-' }}
+                                </td>
+
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="flex-shrink-0 h-8 w-8">
                                             <div
-                                                class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold">
+                                                class="h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xs">
                                                 {{ substr($mhs->name, 0, 1) }}
                                             </div>
                                         </div>
-                                        <div class="ml-4">
+                                        <div class="ml-3">
                                             <div class="text-sm font-medium text-gray-900">{{ $mhs->name }}</div>
-                                        </div>
+                                            {{-- <div class="text-xs text-gray-500">
+                                                {{ $mhs->mahasiswaProfile->kelas ?? 'Kelas -' }}
+                                        </div> --}}
                                     </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $mhs->email }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $mhs->created_at->format('d M Y') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a href="{{ route('admin.users.mahasiswa.edit', $mhs->id) }}"
-                                        class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
-                                    <form action="{{ route('users.destroy', $mhs->id) }}" method="POST"
-                                        class="inline-block" onsubmit="return confirm('Yakin hapus user ini?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="text-red-600 hover:text-red-900 font-medium hover:underline">Hapus</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            @endforeach
+                </div>
+                </td>
 
-                            @if ($mahasiswas->isEmpty())
-                            <tr>
-                                <td colspan="4" class="px-6 py-4 text-center text-gray-500 italic">Data mahasiswa tidak
-                                    ditemukan.</td>
-                            </tr>
-                            @endif
-                        </tbody>
-                    </table>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ $mhs->email }}
+                </td>
 
-                    <div class="mt-4">
-                        {{ $mahasiswas->appends(request()->query())->links() }}
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                    <div class="flex justify-center items-center gap-2">
+
+                        <a href="{{ route('users.show', $mhs->id) }}"
+                            class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                            title="Lihat Profil">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </a>
+
+                        <form action="{{ route('users.destroy', $mhs->id) }}" method="POST"
+                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus mahasiswa ini?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 hover:text-red-800 transition-colors"
+                                title="Hapus Permanen">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </form>
+
                     </div>
+                </td>
+                </tr>
+                @endforeach
+
+                @if ($mahasiswas->isEmpty())
+                <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-gray-500 italic">Belum ada data
+                        mahasiswa.
+                    </td>
+                </tr>
+                @endif
+                </tbody>
+                </table>
+
+                <div class="mt-4">
+                    {{ $mahasiswas->appends(request()->query())->links() }}
                 </div>
             </div>
-
         </div>
+
+    </div>
     </div>
 </x-app-layout>
