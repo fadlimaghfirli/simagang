@@ -10,6 +10,7 @@ use Illuminate\Validation\Rules;
 use App\Imports\UsersImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -162,40 +163,46 @@ class UserController extends Controller
     // 3. Update Data (Menangani User + Profil)
     public function update(Request $request, User $user)
     {
-        // A. Validasi Data Dasar
+        // 1. Validasi Data Akun Utama (User)
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:8',
+            'name' => ['required', 'string', 'max:255'],
+            // Validasi email unik kecuali punya user ini sendiri
+            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
+            'password' => ['nullable', 'min:8'], // Password opsional saat edit
         ]);
 
-        // B. Update Data User Login
+        // 2. Siapkan data update User
         $userData = [
             'name' => $request->name,
             'email' => $request->email,
         ];
 
+        // Cek apakah password diisi? Jika ya, encrypt & masukkan. Jika tidak, abaikan.
         if ($request->filled('password')) {
             $userData['password'] = bcrypt($request->password);
         }
 
-        // Kita tidak update 'role' di sini karena edit user biasanya role-nya tetap.
-        // Jika ingin ubah role, sebaiknya hapus user dan buat baru agar data profil bersih.
-
+        // Update tabel users
         $user->update($userData);
 
-        // C. Update Data Profil Sesuai Role
+        // 3. Logika Update Profil Berdasarkan Role
         if ($user->role === 'dosen') {
+
+            // Ambil ID profil dosen jika ada (untuk pengecekan unique)
+            $profileId = $user->dosenProfile ? $user->dosenProfile->id : null;
+
             $request->validate([
-                'nip' => 'required|string|unique:dosen_profiles,nip,' . optional($user->dosenProfile)->id,
-                'nidn' => 'nullable|string|unique:dosen_profiles,nidn,' . optional($user->dosenProfile)->id,
-                'kode_dosen' => 'nullable|string|max:5',
-                'no_hp' => 'nullable|string|max:15',
+                // Validasi unik NIP & NIDN kecuali punya profil ini sendiri
+                'nip' => ['required', 'string', Rule::unique('dosen_profiles', 'nip')->ignore($profileId)],
+                'nidn' => ['nullable', 'string', Rule::unique('dosen_profiles', 'nidn')->ignore($profileId)],
+                'kode_dosen' => ['nullable', 'string', 'max:5'],
+                'no_hp' => ['nullable', 'string', 'max:15'],
             ]);
 
-            // Gunakan updateOrCreate untuk menangani jika profil sebelumnya belum ada
+            // Simpan atau Update ke tabel dosen_profiles
+            // Menggunakan updateOrCreate agar aman jika data profil sebelumnya belum ada
             $user->dosenProfile()->updateOrCreate(
-                ['user_id' => $user->id],
+                ['user_id' => $user->id], // Kunci pencarian
                 [
                     'nip' => $request->nip,
                     'nidn' => $request->nidn,
@@ -204,13 +211,18 @@ class UserController extends Controller
                 ]
             );
 
-            return redirect()->route('admin.users.dosen')->with('success', 'Data Dosen berhasil diperbarui!');
+            // Redirect KEMBALI (back) agar user tetap di halaman Show Dosen dan melihat perubahannya
+            return redirect()->back()->with('success', 'Profil Dosen berhasil diperbarui!');
         } elseif ($user->role === 'mahasiswa') {
+            // ... (Logika mahasiswa tetap sama seperti sebelumnya) ...
+
+            $profileId = $user->mahasiswaProfile ? $user->mahasiswaProfile->id : null;
+
             $request->validate([
-                'nim' => 'required|string|unique:mahasiswa_profiles,nim,' . optional($user->mahasiswaProfile)->id,
-                'angkatan' => 'required|numeric',
-                'kelas' => 'nullable|string',
-                'dosen_wali_id' => 'nullable|exists:users,id',
+                'nim' => ['required', 'string', Rule::unique('mahasiswa_profiles', 'nim')->ignore($profileId)],
+                'angkatan' => ['required', 'numeric'],
+                'kelas' => ['nullable', 'string'],
+                'dosen_wali_id' => ['nullable', 'exists:users,id'],
             ]);
 
             $user->mahasiswaProfile()->updateOrCreate(
@@ -224,9 +236,10 @@ class UserController extends Controller
                 ]
             );
 
-            return redirect()->route('admin.users.mahasiswa')->with('success', 'Data Mahasiswa berhasil diperbarui!');
+            return redirect()->back()->with('success', 'Profil Mahasiswa berhasil diperbarui!');
         }
 
+        // Default redirect jika bukan dosen/mahasiswa
         return redirect()->route('admin.users.index')->with('success', 'Data User berhasil diperbarui!');
     }
 
