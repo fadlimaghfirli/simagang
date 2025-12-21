@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class Application extends Model
 {
@@ -18,6 +19,7 @@ class Application extends Model
         'transcript_path',
         'notes',
         'dosen_id',
+        'period_id',
         'score_bimbingan',
         'score_laporan',
         'final_score'
@@ -45,5 +47,28 @@ class Application extends Model
     public function laporan()
     {
         return $this->hasOne(Laporan::class, 'user_id', 'user_id');
+    }
+
+    public function period()
+    {
+        return $this->belongsTo(Period::class);
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($application) {
+            $activePeriod = Period::where('is_active', true)->first();
+            if ($activePeriod) {
+                $application->period_id = $activePeriod->id;
+            }
+        });
+
+        // GLOBAL SCOPE
+        static::addGlobalScope('active_period', function (Builder $builder) {
+            $activePeriod = Period::where('is_active', true)->first();
+            if ($activePeriod) {
+                $builder->where('period_id', $activePeriod->id);
+            }
+        });
     }
 }

@@ -63,7 +63,14 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     // Manajemen Bimbingan (Plotting)
     Route::resource('bimbingan', \App\Http\Controllers\Admin\BimbinganController::class)
         ->only(['index', 'update']);
+
+    // Manajemen Periode Akademik
+    Route::get('/periods', [\App\Http\Controllers\Admin\PeriodController::class, 'index'])->name('periods.index');
+    Route::post('/periods', [\App\Http\Controllers\Admin\PeriodController::class, 'store'])->name('periods.store');
+    Route::patch('/periods/{period}/activate', [\App\Http\Controllers\Admin\PeriodController::class, 'activate'])->name('periods.activate');
+    Route::delete('/periods/{period}', [\App\Http\Controllers\Admin\PeriodController::class, 'destroy'])->name('periods.destroy');
 });
+
 // Import Users dari Excel
 Route::post('users/import', [\App\Http\Controllers\Admin\UserController::class, 'import'])->name('users.import');
 

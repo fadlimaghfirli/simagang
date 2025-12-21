@@ -9,10 +9,17 @@ use Illuminate\Http\Request;
 
 class VacancyController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Ambil data lowongan beserta nama perusahaannya (with company)
-        $vacancies = Vacancy::with('company')->latest()->get();
+        $query = Vacancy::with('company');
+
+        // Jika Admin memilih filter "Tampilkan Semua Arsip"
+        if ($request->has('show_all')) {
+            $query->withoutGlobalScope('active_period'); // Lepas kacamata kuda
+        }
+
+        $vacancies = $query->latest()->get();
+
         return view('admin.mitra.lowongan.index', compact('vacancies'));
     }
 
